@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Wallpaper 管理後台</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #eee;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(22, 33, 62, 0.95);
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 1200px;
+            margin: 0 auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            border: 1px solid rgba(233, 69, 96, 0.3);
+        }
+        h1 { 
+            color: #e94560; 
+            margin-bottom: 8px;
+            font-size: 28px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 32px;
+            font-size: 14px;
+        }
+        
+        .back-link {
+            display: inline-block;
+            color: #e94560;
+            text-decoration: none;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background: rgba(233, 69, 96, 0.1);
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .back-link:hover {
+            background: rgba(233, 69, 96, 0.2);
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid rgba(233, 69, 96, 0.3);
+            padding-bottom: 16px;
+        }
+        .tab {
+            padding: 12px 24px;
+            background: rgba(233, 69, 96, 0.1);
+            border: 1px solid rgba(233, 69, 96, 0.3);
+            border-radius: 8px;
+            color: #aaa;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        .tab:hover {
+            background: rgba(233, 69, 96, 0.2);
+        }
+        .tab.active {
+            background: #e94560;
+            color: #fff;
+            border-color: #e94560;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+        .stat-card {
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            border: 1px solid rgba(233, 69, 96, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(233, 69, 96, 0.2);
+        }
+        .stat-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #e94560;
+            margin-bottom: 8px;
+        }
+        .stat-label {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .stat-card.info .stat-value { color: #4ecdc4; }
+        .stat-card.success .stat-value { color: #00d9a5; }
+        
+        .section-title {
+            color: #4ecdc4;
+            font-size: 18px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(233, 69, 96, 0.1);
+        }
+        th { 
+            background: rgba(233, 69, 96, 0.1);
+            color: #e94560;
+            font-weight: 600;
+        }
+        tr:hover { 
+            background: rgba(233, 69, 96, 0.05);
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .thumb {
+            width: 50px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        .badge-success {
+            background: rgba(0, 217, 165, 0.2);
+            color: #00d9a5;
+        }
+        .badge-danger {
+            background: rgba(233, 69, 96, 0.2);
+            color: #e94560;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .btn-danger {
+            background: rgba(233, 69, 96, 0.2);
+            color: #e94560;
+        }
+        .btn-danger:hover {
+            background: #e94560;
+            color: #fff;
+        }
+        
+        .form-card {
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(233, 69, 96, 0.2);
+            margin-top: 24px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            color: #fff;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #e94560;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        .btn-primary {
+            background: #e94560;
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .btn-primary:hover {
+            background: #ff6b8a;
+        }
+        .btn-secondary {
+            background: rgba(78, 205, 196, 0.2);
+            color: #4ecdc4;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .btn-secondary:hover {
+            background: rgba(78, 205, 196, 0.3);
+        }
+        .btn-warning {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .btn-warning:hover {
+            background: rgba(255, 193, 7, 0.3);
+        }
+        
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 16px;
+            text-align: center;
+            display: none;
+        }
+        .message.success {
+            background: rgba(0, 168, 120, 0.2);
+            color: #00a878;
+            display: block;
+        }
+        .message.error {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+            display: block;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+        
+        /* 版本管理樣式 */
+        .version-card {
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border-radius: 16px;
+            padding: 32px;
+            border: 1px solid rgba(233, 69, 96, 0.2);
+        }
+        .current-version {
+            text-align: center;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid rgba(233, 69, 96, 0.2);
+        }
+        .current-version h2 {
+            font-size: 48px;
+            color: #4ecdc4;
+            margin: 10px 0;
+        }
+        .current-version p {
+            color: #888;
+            font-size: 14px;
+        }
+        .version-form h3 {
+            color: #4ecdc4;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+        .info-box {
+            background: rgba(78, 205, 196, 0.1);
+            border-left: 4px solid #4ecdc4;
+            padding: 16px;
+            margin-top: 24px;
+            font-size: 14px;
+            color: #888;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        /* 上傳卡片樣式 */
+        .upload-card {
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(233, 69, 96, 0.2);
+            margin-bottom: 24px;
+        }
+        .upload-card h3 {
+            color: #4ecdc4;
+            margin-bottom: 16px;
+            font-size: 18px;
+        }
+        .upload-card select {
+            width: 100%;
+            padding: 12px 16px;
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+        }
+        .upload-card input[type="file"] {
+            padding: 10px;
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #fff;
+            width: 100%;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+        .loading::after {
+            content: '';
+            animation: dots 1.5s infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← 回首頁</a>
+        
+        <h1>🖼️ Auto Wallpaper 管理後台</h1>
+        <p class="subtitle">自動桌布更換系統管理介面</p>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('stats')">📊 統計概覽</button>
+            <button class="tab" onclick="showTab('images')">🖼️ 圖庫管理</button>
+            <button class="tab" onclick="showTab('version')">📦 版本管理</button>
+        </div>
+        
+        <!-- 統計概覽 -->
+        <div id="tab-stats" class="tab-content active">
+            <div class="stats-grid" id="statsGrid">
+                <div class="loading">載入中</div>
+            </div>
+            
+            <div class="section-title">📥 最新下載</div>
+            <table id="recentDownloads">
+                <thead>
+                    <tr>
+                        <th>時間</th>
+                        <th>分類</th>
+                        <th>大小</th>
+                    </tr>
+                </thead>
+                <tbody id="recentDownloadsBody">
+                    <tr><td colspan="3" class="loading">載入中</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 圖庫管理 -->
+        <div id="tab-images" class="tab-content">
+            <div class="upload-card">
+                <h3>📤 上傳圖片</h3>
+                <form id="uploadForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>標題</label>
+                            <input type="text" id="uploadTitle" placeholder="圖片標題（可選）">
+                        </div>
+                        <div class="form-group">
+                            <label>分類</label>
+                            <select id="uploadCategory">
+                                <option value="other">其他</option>
+                                <option value="nature">自然風景</option>
+                                <option value="anime">動漫</option>
+                                <option value="girl">女孩</option>
+                                <option value="abstract">抽象</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>選擇圖片（可多選）</label>
+                        <input type="file" id="uploadFiles" accept="image/*" multiple>
+                    </div>
+                    <button type="submit" class="btn btn-primary">📤 上傳圖片</button>
+                    <div id="uploadMessage" class="message"></div>
+                </form>
+                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(233,69,96,0.2); display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                    <button id="syncBtn" class="btn btn-secondary" onclick="syncGallery()">🔄 同步資料夾</button>
+                    <button id="fixBtn" class="btn btn-danger" onclick="fixCategories()">🔨 一鍵修復分類</button>
+                    <span style="color: #888; font-size: 12px;">同步：加入新圖片｜一鍵修復：從檔名解析分類</span>
+                </div>
+            </div>
+            
+            <div id="imagesMessage" class="message"></div>
+            
+            <div style="margin: 16px 0; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                <label style="display: flex; align-items: center; gap: 8px;">
+                    <span>分類篩選：</span>
+                    <select id="filterCategory" onchange="loadImages()" style="padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(233,69,96,0.3); background: rgba(26,26,46,0.8); color: #eee;">
+                        <option value="all">全部</option>
+                        <option value="nature">自然風景</option>
+                        <option value="anime">動漫</option>
+                        <option value="girl">女孩</option>
+                        <option value="abstract">抽象</option>
+                        <option value="other">其他</option>
+                    </select>
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                    <span>全選</span>
+                </label>
+                <button class="btn btn-danger" onclick="batchDelete()" id="batchDeleteBtn" disabled>🗑️ 批量刪除 (<span id="selectedCount">0</span>)</button>
+            </div>
+            
+            <table id="imagesTable">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;"></th>
+                        <th>縮圖</th>
+                        <th>標題</th>
+                        <th>分類</th>
+                        <th>大小</th>
+                        <th>下載次數</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="imagesBody">
+                    <tr><td colspan="7" class="loading">載入中</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 版本管理 -->
+        <div id="tab-version" class="tab-content">
+            <div class="version-card">
+                <div class="current-version">
+                    <p>目前版本</p>
+                    <h2 id="currentVersion">載入中...</h2>
+                    <p id="currentCode">version_code: -</p>
+                </div>
+                
+                <div class="version-form">
+                    <h3>🔧 版本設定</h3>
+                    <div class="form-group">
+                        <label>版本號 (如: 1.0.0)</label>
+                        <input type="text" id="versionName" placeholder="輸入版本號，如 1.0.0">
+                    </div>
+                    <div class="form-group">
+                        <label>version_code (數字，越大越新)</label>
+                        <input type="number" id="versionCode" placeholder="輸入數字，如 8">
+                    </div>
+                    <div class="form-group">
+                        <label>更新說明</label>
+                        <input type="text" id="versionNote" placeholder="如：修復了一些問題">
+                    </div>
+                    <div class="form-group">
+                        <label>APK 檔案 URL</label>
+                        <input type="text" id="apkUrl" placeholder="例如：http://203.222.24.35:3000/apk/AutoWallpaper-debug.apk">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="mandatory"> 強制更新
+                        </label>
+                    </div>
+                    <button class="btn btn-primary" onclick="updateVersion()">
+                        💾 儲存版本資訊
+                    </button>
+                    <div id="versionMessage" class="message"></div>
+                </div>
+                
+                <div class="info-box">
+                    💡 提示：這個版本資訊會影響 APP 的強制更新判斷。<br>
+                    當 APP 的 version_code 小於這裡的 version_code 時，APP 會要求更新。
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = window.location.origin;
+        
+        function showTab(name) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            document.querySelector(`.tab[onclick="showTab('${name}')"]`).classList.add('active');
+            document.getElementById(`tab-${name}`).classList.add('active');
+            
+            if (name === 'stats') loadStats();
+            if (name === 'images') loadImages();
+            if (name === 'version') loadCurrentVersion();
+        }
+        
+        // 載入統計
+        async function loadStats() {
+            try {
+                const res = await fetch(`${API_BASE}/api/stats`);
+                const data = await res.json();
+                
+                document.getElementById('statsGrid').innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-icon">🖼️</div>
+                        <div class="stat-value">${data.total_images || 0}</div>
+                        <div class="stat-label">總圖片數</div>
+                    </div>
+                    <div class="stat-card info">
+                        <div class="stat-icon">📱</div>
+                        <div class="stat-value">${data.total_installs || 0}</div>
+                        <div class="stat-label">總安裝數</div>
+                    </div>
+                    <div class="stat-card info">
+                        <div class="stat-icon">🔥</div>
+                        <div class="stat-value">${data.active_today || 0}</div>
+                        <div class="stat-label">今日活躍</div>
+                    </div>
+                    <div class="stat-card success">
+                        <div class="stat-icon">📦</div>
+                        <div class="stat-value">${data.latest_version?.version || '-'}</div>
+                        <div class="stat-label">最新版本</div>
+                    </div>
+                `;
+                
+                // 最新下載（取前5筆圖片）
+                const galleryRes = await fetch(`${API_BASE}/api/gallery?limit=5`);
+                const galleryData = await galleryRes.json();
+                const images = galleryData.images || [];
+                
+                if (images.length === 0) {
+                    document.getElementById('recentDownloadsBody').innerHTML = '<tr><td colspan="3" class="empty-state"><div class="empty-state-icon">📭</div>尚無下載記錄</td></tr>';
+                } else {
+                    document.getElementById('recentDownloadsBody').innerHTML = images.map(img => `
+                        <tr>
+                            <td>${new Date(img.created_at).toLocaleDateString()}</td>
+                            <td><span class="badge badge-success">${img.category}</span></td>
+                            <td>${formatSize(img.size)}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) {
+                document.getElementById('statsGrid').innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠️</div>無法載入統計資料</div>`;
+            }
+        }
+        
+        // 取得分類中文名稱
+        function getCategoryName(cat) {
+            const names = { nature: '自然風景', anime: '動漫', girl: '女孩', abstract: '抽象', other: '其他' };
+            return names[cat] || cat;
+        }
+        
+        // 載入圖片
+        async function loadImages() {
+            try {
+                const category = document.getElementById('filterCategory').value;
+                const url = category && category !== 'all' 
+                    ? `${API_BASE}/api/admin/gallery?category=${category}`
+                    : `${API_BASE}/api/admin/gallery`;
+                const res = await fetch(url);
+                const data = await res.json();
+                const images = data.images || [];
+                
+                if (images.length === 0) {
+                    document.getElementById('imagesBody').innerHTML = '<tr><td colspan="6" class="empty-state"><div class="empty-state-icon">📭</div>尚無圖片</td></tr>';
+                    return;
+                }
+                
+                document.getElementById('imagesBody').innerHTML = images.map(img => `
+                    <tr>
+                        <td><input type="checkbox" class="img-checkbox" value="${img.id}" onchange="updateSelectedCount()"></td>
+                        <td><img src="${img.thumbnail_url}" class="thumb" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 50 70%22><rect fill=%22%23333%22 width=%2250%22 height=%2270%22/><text x=%2225%22 y=%2235%22 fill=%22%23666%22 text-anchor=%22middle%22 font-size=%228%22>?</text></svg>'"></td>
+                        <td>${img.title || '-'}</td>
+                        <td><span class="badge badge-success">${getCategoryName(img.category)}</span></td>
+                        <td>${formatSize(img.size)}</td>
+                        <td>${img.downloads || 0}</td>
+                        <td><button class="btn btn-danger" onclick="deleteImage(${img.id})">🗑️</button></td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                showMessage('images', '載入失敗：' + e.message, 'error');
+            }
+        }
+        
+        // 刪除圖片
+        async function deleteImage(id) {
+            if (!confirm('確定要刪除這張圖片嗎？')) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/gallery/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (res.ok) {
+                    showMessage('images', '✅ 圖片已刪除', 'success');
+                    loadImages();
+                } else {
+                    showMessage('images', '❌ 刪除失敗', 'error');
+                }
+            } catch (e) {
+                showMessage('images', '❌ 刪除失敗：' + e.message, 'error');
+            }
+        }
+        
+        // 全選/取消全選
+        function toggleSelectAll() {
+            const checked = document.getElementById('selectAll').checked;
+            document.querySelectorAll('.img-checkbox').forEach(cb => cb.checked = checked);
+            updateSelectedCount();
+        }
+        
+        // 更新已選數量
+        function updateSelectedCount() {
+            const selected = document.querySelectorAll('.img-checkbox:checked').length;
+            document.getElementById('selectedCount').textContent = selected;
+            document.getElementById('batchDeleteBtn').disabled = selected === 0;
+        }
+        
+        // 批量刪除
+        async function batchDelete() {
+            const checkboxes = document.querySelectorAll('.img-checkbox:checked');
+            const ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
+            
+            if (ids.length === 0) return;
+            if (!confirm(`確定要刪除選取的 ${ids.length} 張圖片嗎？`)) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/gallery/batch-delete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids })
+                });
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    showMessage('images', `✅ 已刪除 ${data.deleted} 張圖片`, 'success');
+                    document.getElementById('selectAll').checked = false;
+                    loadImages();
+                } else {
+                    showMessage('images', '❌ 批量刪除失敗', 'error');
+                }
+            } catch (e) {
+                showMessage('images', '❌ 批量刪除失敗：' + e.message, 'error');
+            }
+        }
+        
+        // 上傳圖片
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const files = document.getElementById('uploadFiles').files;
+            if (files.length === 0) {
+                showMessage('upload', '請選擇要上傳的圖片', 'error');
+                return;
+            }
+            
+            const title = document.getElementById('uploadTitle').value;
+            const category = document.getElementById('uploadCategory').value;
+            const msg = document.getElementById('uploadMessage');
+            const btn = e.target.querySelector('button[type="submit"]');
+            
+            btn.disabled = true;
+            btn.textContent = '📤 上傳中...';
+            
+            try {
+                const formData = new FormData();
+                formData.append('title', title);
+                formData.append('category', category);
+                
+                for (const file of files) {
+                    formData.append('images', file);
+                }
+                
+                const res = await fetch(`${API_BASE}/api/admin/gallery/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    showMessage('upload', `✅ 上傳成功！已上傳 ${data.results?.length || files.length} 張圖片`, 'success');
+                    document.getElementById('uploadForm').reset();
+                    loadImages();
+                } else {
+                    const data = await res.json();
+                    showMessage('upload', '❌ 上傳失敗：' + (data.error || '未知錯誤'), 'error');
+                }
+            } catch (e) {
+                showMessage('upload', '❌ 上傳失敗：' + e.message, 'error');
+            }
+            
+            btn.disabled = false;
+            btn.textContent = '📤 上傳圖片';
+        });
+        
+        // 同步資料夾圖片
+        async function syncGallery() {
+            if (!confirm('確定要同步 static/gallery 資料夾中的圖片到資料庫嗎？')) return;
+            
+            try {
+                const btn = document.getElementById('syncBtn');
+                btn.disabled = true;
+                btn.textContent = '🔄 同步中...';
+                
+                const res = await fetch(`${API_BASE}/api/admin/gallery/sync`, { method: 'POST' });
+                const data = await res.json();
+                
+                if (data.ok) {
+                    showMessage('images', `✅ 已同步！新增了 ${data.added} 張圖片，移除了 ${data.removed || 0} 張孤儿記錄`, 'success');
+                    loadImages();
+                } else {
+                    showMessage('images', '❌ 同步失敗：' + (data.error || '未知錯誤'), 'error');
+                }
+                
+                btn.disabled = false;
+                btn.textContent = '🔄 同步資料夾';
+            } catch (e) {
+                showMessage('images', '❌ 同步失敗：' + e.message, 'error');
+            }
+        }
+        
+        // 一鍵修復分類（從檔案名稱解析）
+        async function fixCategories() {
+            if (!confirm('確定要一鍵修復分類？\n這會根據檔案名稱自動解析分類並更新資料庫。\n\n例如：girl_001.jpg → 分類改為 girl')) return;
+            
+            try {
+                const btn = document.getElementById('fixBtn');
+                btn.disabled = true;
+                btn.textContent = '🔨 修復中...';
+                
+                const res = await fetch(`${API_BASE}/api/admin/gallery/fix-categories`, { method: 'POST' });
+                const data = await res.json();
+                
+                if (data.ok) {
+                    showMessage('images', `✅ ${data.message || '修復完成'}`, 'success');
+                    loadImages();
+                } else {
+                    showMessage('images', '❌ 修復失敗：' + (data.error || '未知錯誤'), 'error');
+                }
+                
+                btn.disabled = false;
+                btn.textContent = '🔨 一鍵修復分類';
+            } catch (e) {
+                showMessage('images', '❌ 修復失敗：' + e.message, 'error');
+            }
+        }
+        
+        // 載入當前版本資訊
+        async function loadCurrentVersion() {
+            try {
+                const res = await fetch(`${API_BASE}/api/version/check`);
+                const data = await res.json();
+                
+                if (data.latest_version) {
+                    document.getElementById('currentVersion').textContent = data.latest_version.version || '-';
+                    document.getElementById('currentCode').textContent = 'version_code: ' + data.latest_version.version_code;
+                    document.getElementById('versionName').value = data.latest_version.version || '';
+                    document.getElementById('versionCode').value = data.latest_version.version_code || '';
+                    document.getElementById('versionNote').value = data.latest_version.release_notes || '';
+                    document.getElementById('apkUrl').value = data.latest_version.download_url || '';
+                } else {
+                    document.getElementById('currentVersion').textContent = '未設定';
+                    document.getElementById('currentCode').textContent = 'version_code: -';
+                    document.getElementById('apkUrl').value = 'http://203.222.24.35:3000/apk/AutoWallpaper-debug.apk';
+                }
+            } catch (e) {
+                document.getElementById('currentVersion').textContent = '載入失敗';
+            }
+        }
+        
+        // 更新版本資訊
+        async function updateVersion() {
+            const version = document.getElementById('versionName').value.trim();
+            const versionCode = parseInt(document.getElementById('versionCode').value);
+            const releaseNotes = document.getElementById('versionNote').value.trim();
+            const apkUrl = document.getElementById('apkUrl').value.trim();
+            const mandatory = document.getElementById('mandatory').checked;
+            const msg = document.getElementById('versionMessage');
+            
+            if (!version || !versionCode) {
+                msg.textContent = '請填寫版本號和 version_code';
+                msg.className = 'message error';
+                msg.style.display = 'block';
+                setTimeout(() => msg.style.display = 'none', 3000);
+                return;
+            }
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/version`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        version: version,
+                        version_code: versionCode,
+                        release_notes: releaseNotes,
+                        download_url: apkUrl,
+                        is_mandatory: mandatory
+                    })
+                });
+                
+                if (res.ok) {
+                    msg.textContent = '✅ 版本資訊已更新！';
+                    msg.className = 'message success';
+                    loadCurrentVersion();
+                } else {
+                    const data = await res.json();
+                    msg.textContent = '❌ 更新失敗：' + (data.error || '未知錯誤');
+                    msg.className = 'message error';
+                }
+            } catch (e) {
+                msg.textContent = '❌ 錯誤：' + e.message;
+                msg.className = 'message error';
+            }
+            msg.style.display = 'block';
+            setTimeout(() => msg.style.display = 'none', 3000);
+        }
+        
+        function showMessage(tab, text, type) {
+            const el = document.getElementById(tab + 'Message');
+            el.textContent = text;
+            el.className = 'message ' + type;
+            setTimeout(() => el.className = 'message', 3000);
+        }
+        
+        function formatSize(bytes) {
+            if (!bytes) return '-';
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+        
+        // 初始載入統計
+        loadStats();
+    </script>
+</body>
+</html>

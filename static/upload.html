@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>圖庫上傳</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: #16213e;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 24px;
+            color: #e94560;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #aaa;
+            font-size: 14px;
+        }
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: #0f3460;
+            color: #fff;
+            font-size: 16px;
+        }
+        input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed #e94560;
+            border-radius: 8px;
+            background: #0f3460;
+            color: #fff;
+            cursor: pointer;
+        }
+        input[type="file"]::file-selector-button {
+            background: #e94560;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 12px;
+        }
+        button {
+            padding: 14px 32px;
+            background: #e94560;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #ff6b6b;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .preview-item {
+            position: relative;
+            aspect-ratio: 9/16;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #333;
+        }
+        .preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .preview-item .remove-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 24px;
+            height: 24px;
+            background: rgba(233, 69, 96, 0.9);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 24px;
+        }
+        .preview-item .filename {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.7);
+            padding: 4px 6px;
+            font-size: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .message {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+        }
+        .message.success {
+            background: #00a878;
+            display: block;
+        }
+        .message.error {
+            background: #e94560;
+            display: block;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            margin-top: 16px;
+            overflow: hidden;
+            display: none;
+        }
+        .progress-bar .progress {
+            height: 100%;
+            background: #e94560;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .tips {
+            margin-top: 24px;
+            padding: 16px;
+            background: #0f3460;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #aaa;
+        }
+        .tips h3 {
+            color: #e94560;
+            margin-bottom: 8px;
+        }
+        .tips ul {
+            margin-left: 20px;
+        }
+        .tips li {
+            margin-bottom: 4px;
+        }
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .file-count {
+            color: #e94560;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-row">
+            <a href="index.html" class="nav-link" style="display:inline-block;margin-bottom:16px;">← 回首頁</a> · <a href="gallery.html" class="nav-link" style="display:inline-block;margin-bottom:16px;">圖庫頁面 →</a><h1>🖼️ 圖庫上傳</h1>
+            <span class="file-count" id="fileCount">已選擇 0 張圖片</span>
+        </div>
+        
+        <form id="uploadForm">
+            <div class="form-group">
+                <label>選擇圖片（可多選）</label>
+                <input type="file" id="imageInput" accept="image/*" multiple required>
+            </div>
+            
+            <div class="preview-grid" id="previewGrid"></div>
+            
+            <div class="form-group">
+                <label>統一標題前綴（可選）</label>
+                <input type="text" id="titleInput" placeholder="例如：風景_">
+            </div>
+            
+            <div class="form-group">
+                <label>分類</label>
+                <select id="categoryInput">
+                    <option value="">請選擇分類</option>
+                    <option value="風景">風景</option>
+                    <option value="人物">人物</option>
+                    <option value="動漫">動漫</option>
+                    <option value="卡通">卡通</option>
+                    <option value="汽車">汽車</option>
+                    <option value="動物">動物</option>
+                    <option value="其他">其他</option>
+                </select>
+            </div>
+            
+            <button type="submit" id="submitBtn">上傳所有圖片</button>
+        </form>
+        
+        <div class="progress-bar" id="progressBar">
+            <div class="progress" id="progress"></div>
+        </div>
+        
+        <div class="message" id="messageBox"></div>
+        
+        <div class="tips">
+            <h3>💡 使用提示</h3>
+            <ul>
+                <li>支援 JPG、PNG、GIF、WebP 格式</li>
+
+                <li>系統會自動生成縮圖（寬度 300px）</li>
+                <li>上傳成功後可直接在 App 中看到</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = window.location.origin;
+        let selectedFiles = [];
+        
+        const imageInput = document.getElementById('imageInput');
+        const previewGrid = document.getElementById('previewGrid');
+        const fileCount = document.getElementById('fileCount');
+        const submitBtn = document.getElementById('submitBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progress = document.getElementById('progress');
+        
+        // 選擇圖片
+        imageInput.addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            selectedFiles = files;
+            updatePreview();
+            updateFileCount();
+        });
+        
+        function updatePreview() {
+            previewGrid.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'preview-item';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" alt="${file.name}">
+                        <button type="button" class="remove-btn" onclick="removeFile(${index})">×</button>
+                        <div class="filename">${file.name}</div>
+                    `;
+                    previewGrid.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        function updateFileCount() {
+            fileCount.textContent = `已選擇 ${selectedFiles.length} 張圖片`;
+        }
+        
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updatePreview();
+            updateFileCount();
+            // 重建 file input
+            const dt = new DataTransfer();
+            selectedFiles.forEach(f => dt.items.add(f));
+            imageInput.files = dt.files;
+        }
+        
+        // 上傳表單
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (selectedFiles.length === 0) {
+                showMessage('請選擇圖片', 'error');
+                return;
+            }
+            
+            const titlePrefix = document.getElementById('titleInput').value;
+            const category = document.getElementById('categoryInput').value;
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = '上傳中...';
+            progressBar.style.display = 'block';
+            progress.style.width = '0%';
+            
+            try {
+                const formData = new FormData();
+                selectedFiles.forEach((file, i) => {
+                    formData.append('images', file);
+                });
+                if (titlePrefix) formData.append('title', titlePrefix);
+                if (category) formData.append('category', category);
+                
+                // 模擬進度（因為 fetch 不支援上傳進度）
+                let percent = 0;
+                const progressInterval = setInterval(() => {
+                    percent = Math.min(percent + 10, 90);
+                    progress.style.width = percent + '%';
+                }, 200);
+                
+                const response = await fetch(`${API_BASE}/api/admin/gallery/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                clearInterval(progressInterval);
+                progress.style.width = '100%';
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const successCount = data.results.filter(r => r.ok).length;
+                    showMessage(`上傳成功！共 ${successCount} 張圖片`, 'success');
+                    // 清空
+                    selectedFiles = [];
+                    updatePreview();
+                    updateFileCount();
+                    imageInput.value = '';
+                    document.getElementById('titleInput').value = '';
+                    document.getElementById('categoryInput').value = '';
+                } else {
+                    showMessage(`上傳失敗：${data.error || '未知錯誤'}`, 'error');
+                }
+            } catch (error) {
+                showMessage(`上傳失敗：${error.message}`, 'error');
+            }
+            
+            submitBtn.disabled = false;
+            submitBtn.textContent = '上傳所有圖片';
+            setTimeout(() => {
+                progressBar.style.display = 'none';
+            }, 2000);
+        });
+        
+        function showMessage(text, type) {
+            const messageBox = document.getElementById('messageBox');
+            messageBox.textContent = text;
+            messageBox.className = `message ${type}`;
+            setTimeout(() => {
+                messageBox.className = 'message';
+                messageBox.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

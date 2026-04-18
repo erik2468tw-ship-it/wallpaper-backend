@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>線上圖庫</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: #16213e;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 { color: #e94560; margin-bottom: 24px; }
+        .nav-link {
+            color: #e94560;
+            text-decoration: underline;
+            font-size: 14px;
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .categories {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+        .category-chip {
+            padding: 8px 16px;
+            background: #0f3460;
+            border: none;
+            border-radius: 20px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .category-chip:hover { background: #1a4a7a; }
+        .category-chip.active { background: #e94560; }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px;
+        }
+        
+        .card {
+            background: #0f3460;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(233, 69, 96, 0.3);
+        }
+        
+        .card-img {
+            width: 100%;
+            aspect-ratio: 9/16;
+            object-fit: cover;
+        }
+        
+        .card-body {
+            padding: 12px;
+        }
+        .card-title {
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .card-category {
+            font-size: 12px;
+            color: #e94560;
+            margin-top: 4px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #aaa;
+        }
+        .empty {
+            text-align: center;
+            padding: 60px;
+            color: #aaa;
+        }
+        .empty-icon { font-size: 64px; margin-bottom: 16px; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal.show { display: flex; }
+        
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+        }
+        .modal-img {
+            max-width: 100%;
+            max-height: 80vh;
+            border-radius: 8px;
+        }
+        .modal-info {
+            background: #16213e;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-title { font-size: 18px; }
+        .modal-category { color: #e94560; font-size: 14px; }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        .btn-primary { background: #e94560; color: #fff; }
+        .btn-primary:hover { background: #ff6b6b; }
+        .btn-secondary { background: #333; color: #fff; margin-left: 8px; }
+        
+        .close-btn {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 32px;
+            cursor: pointer;
+        }
+        
+        .refresh-btn {
+            background: #0f3460;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .refresh-btn:hover { background: #1a4a7a; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="nav-link">← 回首頁</a> · <a href="admin.html" class="nav-link">管理後台 →</a>
+        
+        <div class="header">
+            <h1>🖼️ 線上圖庫</h1>
+            <button class="refresh-btn" onclick="loadImages()">🔄 重新整理</button>
+        </div>
+        
+        <div class="categories" id="categories">
+            <button class="category-chip active" onclick="filterCategory(null)">全部</button>
+        </div>
+        
+        <div id="content">
+            <div class="loading">載入中...</div>
+        </div>
+    </div>
+    
+    <!-- 圖片詳情 Modal -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">×</button>
+            <img class="modal-img" id="modalImg" src="" alt="">
+            <div class="modal-info">
+                <div>
+                    <div class="modal-title" id="modalTitle"></div>
+                    <div class="modal-category" id="modalCategory"></div>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="downloadImage()">⬇️ 下載</button>
+                    <button class="btn btn-secondary" onclick="closeModal()">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = window.location.origin;
+        let allImages = [];
+        let selectedCategory = null;
+        let selectedImage = null;
+        
+        async function loadImages() {
+            document.getElementById('content').innerHTML = '<div class="loading">載入中...</div>';
+            
+            try {
+                const [galleryRes, catRes] = await Promise.all([
+                    fetch(`${API_BASE}/api/gallery`),
+                    fetch(`${API_BASE}/api/gallery/categories`)
+                ]);
+                
+                const gallery = await galleryRes.json();
+                const categories = await catRes.json();
+                
+                allImages = gallery.images || [];
+                renderCategories(categories.categories || []);
+                renderImages();
+            } catch (e) {
+                document.getElementById('content').innerHTML = `
+                    <div class="empty">
+                        <div class="empty-icon">❌</div>
+                        <div>載入失敗：${e.message}</div>
+                    </div>
+                `;
+            }
+        }
+        
+        function renderCategories(categories) {
+            const container = document.getElementById('categories');
+            let html = `<button class="category-chip ${selectedCategory === null ? 'active' : ''}" onclick="filterCategory(null)">全部</button>`;
+            
+            categories.forEach(cat => {
+                html += `<button class="category-chip ${selectedCategory === cat.category ? 'active' : ''}" onclick="filterCategory('${cat.category}')">${cat.category} (${cat.count})</button>`;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function filterCategory(cat) {
+            selectedCategory = cat;
+            renderCategories(document.querySelectorAll('.category-chip').length > 0 ? 
+                Array.from(document.querySelectorAll('.category-chip')).map(c => c.textContent) : []);
+            
+            // 重新渲染分類高亮
+            const cats = document.querySelectorAll('.category-chip');
+            cats.forEach((c, i) => {
+                c.classList.remove('active');
+                if ((i === 0 && cat === null) || c.textContent.startsWith(cat)) {
+                    c.classList.add('active');
+                }
+            });
+            
+            renderImages();
+        }
+        
+        function renderImages() {
+            const filtered = selectedCategory 
+                ? allImages.filter(img => img.category === selectedCategory)
+                : allImages;
+            
+            if (filtered.length === 0) {
+                document.getElementById('content').innerHTML = `
+                    <div class="empty">
+                        <div class="empty-icon">📭</div>
+                        <div>尚無圖片</div>
+                        <div style="margin-top:8px;font-size:14px;">前往 <a href="admin.html" style="color:#e94560;">管理後台</a> 上傳圖片</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div class="grid">';
+            filtered.forEach(img => {
+                html += `
+                    <div class="card" onclick="showModal(${img.id})">
+                        <img class="card-img" src="${img.thumbnailUrl}" alt="${img.title}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 180 320%22><rect fill=%22%23333%22 width=%22180%22 height=%22320%22/><text x=%2290%22 y=%22160%22 fill=%22%23666%22 text-anchor=%22middle%22 font-size=%2214%22>No Img</text></svg>'">
+                        <div class="card-body">
+                            <div class="card-title">${img.title}</div>
+                            <div class="card-category">${img.category}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            document.getElementById('content').innerHTML = html;
+        }
+        
+        function showModal(id) {
+            selectedImage = allImages.find(img => img.id === id);
+            if (!selectedImage) return;
+            
+            document.getElementById('modalImg').src = selectedImage.fullUrl;
+            document.getElementById('modalTitle').textContent = selectedImage.title;
+            document.getElementById('modalCategory').textContent = selectedImage.category;
+            document.getElementById('modal').classList.add('show');
+        }
+        
+        function closeModal() {
+            document.getElementById('modal').classList.remove('show');
+            selectedImage = null;
+        }
+        
+        function downloadImage() {
+            if (!selectedImage) return;
+            
+            const a = document.createElement('a');
+            a.href = selectedImage.fullUrl;
+            a.download = selectedImage.filename;
+            a.target = '_blank';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+        
+        // ESC 關閉 modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+        
+        // 初始載入
+        loadImages();
+    </script>
+</body>
+</html>

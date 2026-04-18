@@ -1,0 +1,23 @@
+{
+  "name": "wallpaper-backend",
+  "version": "1.0.0",
+  "description": "Auto Wallpaper App Backend - Analytics, Gallery, Version Check",
+  "main": "wallpaper-server-simple.js",
+  "scripts": {
+    "start": "node wallpaper-server-simple.js",
+    "dev": "nodemon wallpaper-server-simple.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.34.5",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "latest": {
+    "version": "1.2.2",
+    "version_code": 26,
+    "is_mandatory": true,
+    "min_version_code": 0,
+    "download_url": "http://203.222.24.35:3000/apk/VoiceIME-debug.apk",
+    "release_notes": "最佳化 UI，新增麥克風圖示，修正懸浮球功能"
+  }
+}

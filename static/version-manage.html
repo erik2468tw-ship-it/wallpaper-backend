@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoiceIME 版本管理</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #eee;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(22, 33, 62, 0.95);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        h1 { color: #e94560; margin-bottom: 24px; text-align: center; }
+        
+        .back-link {
+            display: inline-block;
+            color: #e94560;
+            text-decoration: none;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background: rgba(233, 69, 96, 0.1);
+            border-radius: 8px;
+        }
+        .back-link:hover { background: rgba(233, 69, 96, 0.2); }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            color: #fff;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+        }
+        input:focus {
+            outline: none;
+            border-color: #e94560;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #e94560;
+            color: #fff;
+        }
+        .btn-primary:hover { background: #ff6b8a; }
+        
+        .current-version {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .current-version h2 {
+            font-size: 48px;
+            color: #4ecdc4;
+            margin: 10px 0;
+        }
+        .current-version p {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 16px;
+            text-align: center;
+        }
+        .message.success {
+            background: rgba(0, 168, 120, 0.2);
+            color: #00a878;
+        }
+        .message.error {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+        }
+        
+        .info {
+            background: rgba(78, 205, 196, 0.1);
+            border-left: 4px solid #4ecdc4;
+            padding: 12px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← 回首頁</a>
+        
+        <h1>📦 VoiceIME 版本管理</h1>
+        
+        <div class="current-version">
+            <p>目前版本</p>
+            <h2 id="currentVersion">載入中...</h2>
+            <p id="currentCode">version_code: -</p>
+        </div>
+        
+        <div class="form-group">
+            <label>版本號 (如: 1.2.0)</label>
+            <input type="text" id="versionName" placeholder="輸入版本號，如 1.2.0">
+        </div>
+        
+        <div class="form-group">
+            <label>version_code (數字，越大越新)</label>
+            <input type="number" id="versionCode" placeholder="輸入數字，如 23">
+        </div>
+        
+        <div class="form-group">
+            <label>更新說明</label>
+            <input type="text" id="releaseNotes" placeholder="如：優化效能、修復問題">
+        </div>
+        
+        <button class="btn btn-primary" onclick="updateVersion()">
+            💾 儲存版本資訊
+        </button>
+        
+        <div id="message"></div>
+        
+        <div class="info">
+            💡 提示：這個版本資訊會影響 APP 的強制更新判斷。<br>
+            當 APP 的 version_code 小於這裡的 version_code 時，APP 會要求更新。
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = window.location.origin;
+        
+        async function loadCurrentVersion() {
+            try {
+                const resp = await fetch(API_BASE + '/api/version/check?app=voiceime&version_code=0');
+                const data = await resp.json();
+                
+                if (data.latest_version) {
+                    document.getElementById('currentVersion').textContent = data.latest_version.version;
+                    document.getElementById('currentCode').textContent = 'version_code: ' + data.latest_version.version_code;
+                    document.getElementById('versionName').value = data.latest_version.version;
+                    document.getElementById('versionCode').value = data.latest_version.version_code;
+                    document.getElementById('releaseNotes').value = data.latest_version.release_notes || '';
+                } else {
+                    document.getElementById('currentVersion').textContent = '未設定';
+                    document.getElementById('currentCode').textContent = 'version_code: -';
+                }
+            } catch (e) {
+                document.getElementById('currentVersion').textContent = '載入失敗';
+            }
+        }
+        
+        async function updateVersion() {
+            const version = document.getElementById('versionName').value.trim();
+            const versionCode = parseInt(document.getElementById('versionCode').value);
+            const releaseNotes = document.getElementById('releaseNotes').value.trim();
+            
+            if (!version || !versionCode) {
+                showMessage('請填寫版本號和 version_code', 'error');
+                return;
+            }
+            
+            try {
+                const resp = await fetch(API_BASE + '/api/version/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        app: 'voiceime',
+                        version: version,
+                        version_code: versionCode,
+                        release_notes: releaseNotes,
+                        download_url: 'http://203.222.24.35:3000/apk/VoiceIME-debug.apk',
+                        is_mandatory: true
+                    })
+                });
+                
+                if (resp.ok) {
+                    showMessage('版本資訊已更新！', 'success');
+                    loadCurrentVersion();
+                } else {
+                    showMessage('更新失敗', 'error');
+                }
+            } catch (e) {
+                showMessage('錯誤: ' + e.message, 'error');
+            }
+        }
+        
+        function showMessage(text, type) {
+            const msg = document.getElementById('message');
+            msg.textContent = text;
+            msg.className = 'message ' + type;
+            msg.style.display = 'block';
+            setTimeout(() => msg.style.display = 'none', 3000);
+        }
+        
+        loadCurrentVersion();
+    </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+function addChinesePunctuation(text) {
+    let cleaned = text.replace(/[\u3001\u3002\uFF1F\uFF01\uFF1B\uFF1A\u201C\u201D\u2018\u2019\u300A\u300B]/g, '');
+    cleaned = cleaned.trim();
+    if (!cleaned) return text;
+    
+    var qChars = '\u55CE\u5427\u5462\u554A\u54E6\u5462';
+    var hasQChar = false;
+    for (var i = 0; i < qChars.length; i++) {
+        if (cleaned.endsWith(qChars[i])) { hasQChar = true; break; }
+    }
+    var qStarts = ['\u4EC0\u9EBD','\u54EA','\u8AB0','\u600E\u9EAB','\u70BA\u4EC0\u9EAB','\u591A\u5C11','\u51E0','\u662F\u5426','\u6709\u6C92\u6709','\u662F\u4E0D\u662F','\u80FD\u4E0D\u80FD','\u8981\u4E0D\u8981'];
+    var startsWithQ = qStarts.some(function(q) { return cleaned.startsWith(q); });
+    var isQuestion = hasQChar || startsWithQ;
+    
+    if (!/[\u3002\uFF1F\uFF01]$/.test(cleaned)) {
+        cleaned += isQuestion ? '\uFF1F' : '\u3002';
+    }
+    
+    return cleaned;
+}
