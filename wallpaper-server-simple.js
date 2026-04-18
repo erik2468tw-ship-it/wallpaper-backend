@@ -781,8 +781,17 @@ app.get('/api/gallery/:id', (req, res) => {
         if (err || !row) {
             return res.status(404).json({ error: 'Image not found' });
         }
-        db.run(`UPDATE gallery_images SET downloads = downloads + 1 WHERE id = ?`, [req.params.id]);
-        res.json({ image: row });
+        
+        // 先更新下載次數再回傳
+        db.run(`UPDATE gallery_images SET downloads = downloads + 1 WHERE id = ?`, [req.params.id], (runErr) => {
+            // 即使更新失敗也回傳圖片，只是下載次數不更新
+            res.json({ 
+                image: {
+                    ...row,
+                    downloads: (row.downloads || 0) + (runErr ? 0 : 1)
+                }
+            });
+        });
     });
 });
 
