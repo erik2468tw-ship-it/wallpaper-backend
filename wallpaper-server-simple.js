@@ -22,6 +22,44 @@ const app = express();
 app.use(express.json());
 app.use(express.static('static'));
 
+// ==================== 內網存取限制中介軟體 ====================
+function isPrivateIP(ip) {
+    if (!ip) return false;
+    
+    // 移除 IPv6 前綴
+    ip = ip.replace(/^::ffff:/i, '');
+    
+    // 本地
+    if (ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1') return true;
+    
+    // 10.0.0.0 - 10.255.255.255
+    if (/^10\./.test(ip)) return true;
+    
+    // 172.16.0.0 - 172.31.255.255
+    if (/^172\.(1[6-9]|2\d|3[01])\./.test(ip)) return true;
+    
+    // 192.168.0.0 - 192.168.255.255
+    if (/^192\.168\./.test(ip)) return true;
+    
+    // 100.64.0.0 - 100.127.255.255 (電信級 NAT)
+    if (/^100\.(6[4-9]|7[0-9]|8[0-9]|9[0-9]|1[0-1][0-9]|12[0-7])\./.test(ip)) return true;
+    
+    return false;
+}
+
+function adminAuthMiddleware(req, res, next) {
+    const clientIP = req.headers['x-forwarded-for']?.split(',')[0]?.trim() 
+                   || req.connection?.remoteAddress 
+                   || req.socket?.remoteAddress
+                   || '127.0.0.1';
+    
+    if (isPrivateIP(clientIP)) {
+        next();
+    } else {
+        res.status(403).json({ error: 'Access denied. Admin API only accessible from local or private network.' });
+    }
+}
+
 const db = new sqlite3.Database('./data/app.db');
 
 // ==================== VoiceIME 標點統計 ====================
@@ -252,6 +290,9 @@ app.get('/api/version/check', (req, res) => {
         });
     });
 });
+
+// ==================== 管理 API（需要內網存取）====================
+app.use('/api/admin', adminAuthMiddleware);
 
 // 新增版本（管理後台）
 app.post('/api/admin/version', (req, res) => {
