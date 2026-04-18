@@ -629,9 +629,57 @@ app.post('/api/admin/gallery/batch-update-category', (req, res) => {
     });
 });
 
+// ==================== 分類階層定義 ====================
+const categoryHierarchy = {
+    'style': {
+        name: '風格類',
+        icon: 'palette',
+        categories: ['fantasy', 'sci-fi', 'dark', 'cute', 'vintage', 'minimalist']
+    },
+    'scene': {
+        name: '場景類',
+        icon: 'landscape',
+        categories: ['landscape', 'cityscape', 'sunset', 'ocean', 'mountain', 'forest', 'starry']
+    },
+    'theme': {
+        name: '主題類',
+        icon: 'category',
+        categories: ['portrait', 'couple', 'animal', 'food', 'car', 'phone',
+            'korea', 'thailand', 'usa', 'canada', 'switzerland', 'newzealand',
+            'iceland', 'norway', 'australia', 'italy', 'greece', 'china',
+            'mongolia', 'singapore', 'malaysia', 'indonesia', 'philippines',
+            'myanmar', 'cambodia', 'laos', 'brunei']
+    },
+    'other': {
+        name: '其他',
+        icon: 'more',
+        categories: ['nature', 'anime', 'girl', 'abstract', 'other']
+    }
+};
+
+// 國家名稱對照表
+const categoryNames = {
+    // 風格類
+    'fantasy': '奇幻', 'sci-fi': '科幻', 'dark': '暗黑', 'cute': '可愛', 'vintage': '復古', 'minimalist': '極簡',
+    // 場景類
+    'landscape': '自然風景', 'cityscape': '城市夜景', 'sunset': '日落夕陽', 'ocean': '海洋沙灘', 
+    'mountain': '山景', 'forest': '森林', 'starry': '星空銀河',
+    // 主題類 - 人物
+    'portrait': '人像', 'couple': '情侶', 'animal': '動物', 'food': '美食', 'car': '汽車', 'phone': '手機',
+    // 主題類 - 國家
+    'korea': '韓國', 'thailand': '泰國', 'usa': '美國', 'canada': '加拿大', 
+    'switzerland': '瑞士', 'newzealand': '紐西蘭', 'iceland': '冰島', 'norway': '挪威', 
+    'australia': '澳洲', 'italy': '義大利', 'greece': '希臘', 'china': '中國',
+    'mongolia': '蒙古', 'singapore': '新加坡', 'malaysia': '馬來西亞', 'indonesia': '印尼', 
+    'philippines': '菲律賓', 'myanmar': '緬甸', 'cambodia': '柬埔寨', 'laos': '寮國', 'brunei': '汶萊',
+    // 保留
+    'nature': '自然', 'anime': '動漫', 'girl': '女孩', 'abstract': '抽象', 'other': '其他'
+};
+
 // 從檔案名稱修復分類
 app.post('/api/admin/gallery/fix-categories', (req, res) => {
-    const validCategories = ['nature', 'anime', 'girl', 'abstract', 'other'];
+    const allCategories = Object.values(categoryHierarchy).flatMap(g => g.categories);
+    const validCategories = allCategories;
     
     db.all(`SELECT id, filename FROM gallery_images`, (err, rows) => {
         if (err) {
@@ -696,9 +744,34 @@ app.get('/api/gallery', (req, res) => {
     });
 });
 
+// 取得分類列表（含階層）
 app.get('/api/gallery/categories', (req, res) => {
     db.all(`SELECT category, COUNT(*) as count FROM gallery_images GROUP BY category`, (err, rows) => {
-        res.json({ categories: rows });
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        
+        const countMap = {};
+        rows.forEach(r => countMap[r.category] = r.count);
+        
+        // 組裝階層結構
+        const hierarchy = {};
+        Object.entries(categoryHierarchy).forEach(([key, group]) => {
+            hierarchy[key] = {
+                name: group.name,
+                icon: group.icon,
+                categories: group.categories.map(cat => ({
+                    id: cat,
+                    name: categoryNames[cat] || cat,
+                    count: countMap[cat] || 0
+                }))
+            };
+        });
+        
+        res.json({ 
+            hierarchy: hierarchy,
+            names: categoryNames
+        });
     });
 });
 
