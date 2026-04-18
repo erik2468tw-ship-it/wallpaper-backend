@@ -634,17 +634,17 @@ const categoryHierarchy = {
     'style': {
         name: '風格類',
         icon: 'palette',
-        categories: ['fantasy', 'sci-fi', 'dark', 'cute', 'vintage', 'minimalist']
+        categories: ['fantasy', 'sci-fi', 'dark', 'cute', 'vintage', 'minimalist', 'anime', 'abstract']
     },
     'scene': {
         name: '場景類',
         icon: 'landscape',
-        categories: ['landscape', 'cityscape', 'sunset', 'ocean', 'mountain', 'forest', 'starry']
+        categories: ['landscape', 'cityscape', 'sunset', 'ocean', 'mountain', 'forest', 'starry', 'nature']
     },
     'theme': {
         name: '主題類',
         icon: 'category',
-        categories: ['portrait', 'couple', 'animal', 'food', 'car', 'phone']
+        categories: ['portrait', 'couple', 'animal', 'food', 'car', 'phone', 'girl']
     },
     'country': {
         name: '各國風景',
@@ -653,11 +653,6 @@ const categoryHierarchy = {
             'iceland', 'norway', 'australia', 'italy', 'greece', 'china',
             'mongolia', 'singapore', 'malaysia', 'indonesia', 'philippines',
             'myanmar', 'cambodia', 'laos', 'brunei', 'taiwan', 'japan']
-    },
-    'other': {
-        name: '其他',
-        icon: 'more',
-        categories: ['nature', 'anime', 'girl', 'abstract', 'other']
     }
 };
 
@@ -665,11 +660,12 @@ const categoryHierarchy = {
 const categoryNames = {
     // 風格類
     'fantasy': '奇幻', 'sci-fi': '科幻', 'dark': '暗黑', 'cute': '可愛', 'vintage': '復古', 'minimalist': '極簡',
+    'anime': '動漫', 'abstract': '抽象',
     // 場景類
     'landscape': '自然風景', 'cityscape': '城市夜景', 'sunset': '日落夕陽', 'ocean': '海洋沙灘', 
-    'mountain': '山景', 'forest': '森林', 'starry': '星空銀河',
+    'mountain': '山景', 'forest': '森林', 'starry': '星空銀河', 'nature': '自然',
     // 主題類
-    'portrait': '人像', 'couple': '情侶', 'animal': '動物', 'food': '美食', 'car': '汽車', 'phone': '手機',
+    'portrait': '人像', 'couple': '情侶', 'animal': '動物', 'food': '美食', 'car': '汽車', 'phone': '手機', 'girl': '女孩',
     // 各國風景
     'korea': '韓國', 'thailand': '泰國', 'usa': '美國', 'canada': '加拿大', 
     'switzerland': '瑞士', 'newzealand': '紐西蘭', 'iceland': '冰島', 'norway': '挪威', 
@@ -677,8 +673,8 @@ const categoryNames = {
     'mongolia': '蒙古', 'singapore': '新加坡', 'malaysia': '馬來西亞', 'indonesia': '印尼', 
     'philippines': '菲律賓', 'myanmar': '緬甸', 'cambodia': '柬埔寨', 'laos': '寮國', 
     'brunei': '汶萊', 'taiwan': '台灣', 'japan': '日本',
-    // 保留
-    'nature': '自然', 'anime': '動漫', 'girl': '女孩', 'abstract': '抽象', 'other': '其他'
+    // 保留向後相容
+    'other': '其他'
 };
 
 // 從檔案名稱修復分類
