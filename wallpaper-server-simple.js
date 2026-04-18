@@ -644,11 +644,15 @@ const categoryHierarchy = {
     'theme': {
         name: '主題類',
         icon: 'category',
-        categories: ['portrait', 'couple', 'animal', 'food', 'car', 'phone',
-            'korea', 'thailand', 'usa', 'canada', 'switzerland', 'newzealand',
+        categories: ['portrait', 'couple', 'animal', 'food', 'car', 'phone']
+    },
+    'country': {
+        name: '各國風景',
+        icon: 'public',
+        categories: ['korea', 'thailand', 'usa', 'canada', 'switzerland', 'newzealand',
             'iceland', 'norway', 'australia', 'italy', 'greece', 'china',
             'mongolia', 'singapore', 'malaysia', 'indonesia', 'philippines',
-            'myanmar', 'cambodia', 'laos', 'brunei']
+            'myanmar', 'cambodia', 'laos', 'brunei', 'taiwan', 'japan']
     },
     'other': {
         name: '其他',
@@ -664,14 +668,15 @@ const categoryNames = {
     // 場景類
     'landscape': '自然風景', 'cityscape': '城市夜景', 'sunset': '日落夕陽', 'ocean': '海洋沙灘', 
     'mountain': '山景', 'forest': '森林', 'starry': '星空銀河',
-    // 主題類 - 人物
+    // 主題類
     'portrait': '人像', 'couple': '情侶', 'animal': '動物', 'food': '美食', 'car': '汽車', 'phone': '手機',
-    // 主題類 - 國家
+    // 各國風景
     'korea': '韓國', 'thailand': '泰國', 'usa': '美國', 'canada': '加拿大', 
     'switzerland': '瑞士', 'newzealand': '紐西蘭', 'iceland': '冰島', 'norway': '挪威', 
     'australia': '澳洲', 'italy': '義大利', 'greece': '希臘', 'china': '中國',
     'mongolia': '蒙古', 'singapore': '新加坡', 'malaysia': '馬來西亞', 'indonesia': '印尼', 
-    'philippines': '菲律賓', 'myanmar': '緬甸', 'cambodia': '柬埔寨', 'laos': '寮國', 'brunei': '汶萊',
+    'philippines': '菲律賓', 'myanmar': '緬甸', 'cambodia': '柬埔寨', 'laos': '寮國', 
+    'brunei': '汶萊', 'taiwan': '台灣', 'japan': '日本',
     // 保留
     'nature': '自然', 'anime': '動漫', 'girl': '女孩', 'abstract': '抽象', 'other': '其他'
 };
